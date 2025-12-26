@@ -1,2 +1,11 @@
 class ApplicationController < ActionController::API
-end
+    before_action :authorize_request
+    attr_reader :current_user
+  
+    private
+  
+    def authorize_request
+      # Εδώ ορίζεται το current_user για όλη την εφαρμογή
+      @current_user = (AuthorizeApiRequest.new(request.headers).call)[:user]
+    end
+  end

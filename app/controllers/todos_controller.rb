@@ -1,51 +1,43 @@
 class TodosController < ApplicationController
-  before_action :set_todo, only: %i[ show update destroy ]
+  before_action :set_todo, only: [:show, :update, :destroy]
 
   # GET /todos
   def index
-    @todos = Todo.all
-
+    @todos = current_user.todos
     render json: @todos
-  end
-
-  # GET /todos/1
-  def show
-    render json: @todo
   end
 
   # POST /todos
   def create
-    @todo = Todo.new(todo_params)
-
-    if @todo.save
-      render json: @todo, status: :created, location: @todo
-    else
-      render json: @todo.errors, status: :unprocessable_content
-    end
+    # Εδώ γίνεται η μαγεία: συνδέει το Todo με τον current_user
+    @todo = current_user.todos.create!(todo_params)
+    render json: @todo, status: :created
   end
 
-  # PATCH/PUT /todos/1
+  # GET /todos/:id
+  def show
+    render json: @todo
+  end
+
+  # PUT /todos/:id
   def update
-    if @todo.update(todo_params)
-      render json: @todo
-    else
-      render json: @todo.errors, status: :unprocessable_content
-    end
+    @todo.update(todo_params)
+    head :no_content
   end
 
-  # DELETE /todos/1
+  # DELETE /todos/:id
   def destroy
-    @todo.destroy!
+    @todo.destroy
+    head :no_content
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_todo
-      @todo = Todo.find(params.expect(:id))
-    end
 
-    # Only allow a list of trusted parameters through.
-    def todo_params
-      params.expect(todo: [ :title, :created_by ])
-    end
+  def todo_params
+    params.permit(:title)
+  end
+
+  def set_todo
+    @todo = current_user.todos.find(params[:id])
+  end
 end
